@@ -15,7 +15,8 @@ cd ~/dotfiles
 ```
 Copy all the configs into the dotfiles folder that you want to keep track of.
 
-*IMPORTANT*
+**IMPORTANT** 
+
 Make sure the file path matches EXACTLY as it would look in your home directory. Here is an example layout:
 
 ```
@@ -26,6 +27,11 @@ dotfiles
 
 ```
 When stow is used, it will put the files right where it needs in ```.config```.
+Once you have copied your configs, you can run the following to create the symlinks:
+```bash
+sudo stow --adopt .
+```
+If you go back to any file you stowed, its now a symlink to this copy.
 
 ## Neovim Dependencies
 ```bash
