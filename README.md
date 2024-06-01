@@ -4,7 +4,7 @@
 ## Overall Dependencies
 I am using homebrew at the moment, for two major reasons: 
 * This aligns config between my MacOS and Fedora boxes
-* Fedora 40's NPM for Neovim comes with a bunch of crap in it. 
+* Fedora 40's RPM for Neovim comes with a bunch of crap in it. 
 
 If you dont like homebrew, idk man. Its my repo. 
 
