@@ -8,6 +8,8 @@ I am using homebrew at the moment, for two major reasons:
 
 If you dont like homebrew, idk man. Its my repo. 
 
+## Installing/Configuring Stow
+
 ```bash
 brew install stow
 mkdir ~/dotfiles
