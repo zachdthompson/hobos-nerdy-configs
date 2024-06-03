@@ -112,3 +112,5 @@ eval "$(zoxide init zsh)"
 export PATH="$HOME/.local/share/nvim/mason/bin/:$PATH"
 
 plugins=(git ssh-agent)
+
+export EDITOR=nvim
