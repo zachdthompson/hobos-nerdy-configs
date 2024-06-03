@@ -1,12 +1,15 @@
 # Hobo's Nerdy Configs
+
 .configs for programs I use cross platform, like Neovim and Alacritty. I am using GNU stow to make symlinks to make managing these files easier.
 
 ## Overall Dependencies
-I am using homebrew at the moment, for two major reasons: 
-* This aligns config between my MacOS and Fedora boxes
-* Fedora 40's RPM for Neovim comes with a bunch of crap in it. 
 
-If you dont like homebrew, idk man. Its my repo. 
+I am using homebrew at the moment, for two major reasons:
+
+- This aligns config between my MacOS and Fedora boxes
+- Fedora 40's RPM for Neovim comes with a bunch of crap in it.
+
+If you dont like homebrew, idk man. Its my repo.
 
 ## Installing/Configuring Stow
 
@@ -15,9 +18,10 @@ brew install stow
 mkdir ~/dotfiles
 cd ~/dotfiles
 ```
+
 Copy all the configs into the dotfiles folder that you want to keep track of.
 
-**IMPORTANT** 
+**IMPORTANT**
 
 Make sure the file path matches EXACTLY as it would look in your home directory. Here is an example layout:
 
@@ -28,18 +32,24 @@ dotfiles
 │   │   ├── alacritty.toml
 
 ```
-When stow is used, it will put the files right where it needs in ```.config```.
+
+When stow is used, it will put the files right where it needs in `.config`.
 Once you have copied your configs, you can run the following to create the symlinks:
+
 ```bash
 sudo stow --adopt .
 ```
+
 If you go back to any file you stowed, its now a symlink to this copy.
 
 ## Neovim Dependencies
+
 ```bash
 brew install neovim
 ```
+
 ## ZSH Dependencies
+
 ```bash
 brew install fzf
 brew install bat
@@ -48,16 +58,26 @@ brew install tldr
 brew install thefuck
 brew install zoxide
 ```
+
 ## bat Dependencies
+
 ```bash
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
 ```
+
 ## Alacritty Dependencies
+
 ```bash
 brew install alacritty
 git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
+```
+
+# Lazygit
+
+```bash
+brew install lazygit
 ```
 
 # Note
