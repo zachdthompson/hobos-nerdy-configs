@@ -11,6 +11,15 @@ I am using homebrew at the moment, for two major reasons:
 
 If you dont like homebrew, idk man. Its my repo.
 
+NPM is needed for the lsp configs
+
+```bash
+brew install npm
+```
+
+I heavily reccomend you switch your CAPS key to be an additional ALT key. It will be better on your hands.
+This can be done in the keybind settings of most OS', or on custom firmware settings.
+
 ## Installing/Configuring Stow
 
 ```bash
@@ -78,6 +87,13 @@ git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/theme
 
 ```bash
 brew install lazygit
+```
+
+Add SSH key to agent
+
+```bash
+eval $(ssh-agent)
+ssh-add ~/.ssh/<your github key>
 ```
 
 # Note
