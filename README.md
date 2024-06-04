@@ -17,6 +17,9 @@ NPM is needed for the lsp configs
 brew install npm
 ```
 
+I heavily reccomend you switch your CAPS key to be an additional ALT key. It will be better on your hands.
+This can be done in the keybind settings of most OS', or on custom firmware settings.
+
 ## Installing/Configuring Stow
 
 ```bash
