@@ -11,6 +11,12 @@ I am using homebrew at the moment, for two major reasons:
 
 If you dont like homebrew, idk man. Its my repo.
 
+NPM is needed for the lsp configs
+
+```bash
+brew install npm
+```
+
 ## Installing/Configuring Stow
 
 ```bash
