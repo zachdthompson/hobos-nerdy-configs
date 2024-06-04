@@ -83,7 +83,7 @@ brew install alacritty
 git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
 ```
 
-# Lazygit
+## Lazygit
 
 ```bash
 brew install lazygit
@@ -95,6 +95,17 @@ Add SSH key to agent
 eval $(ssh-agent)
 ssh-add ~/.ssh/<your github key>
 ```
+
+## Tmux
+
+```bash
+brew install tmux
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+brew install --cask font-monaspace-nerd-font font-noto-sans-symbols-2
+brew install bash bc coreutils gawk gh glab gsed jq nowplaying-cli
+```
+
+Not having those last two lines took me like 4 hours to debug...
 
 # Note
 
