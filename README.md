@@ -86,6 +86,13 @@ git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/theme
 brew install lazygit
 ```
 
+Add SSH key to agent
+
+```bash
+eval $(ssh-agent)
+ssh-add ~/.ssh/<your github key>
+```
+
 # Note
 
 I followed a tutorial to setup my Neovim, so shout out to this video as credit:
