@@ -63,7 +63,7 @@ brew install neovim
 brew install fzf
 brew install bat
 brew install eza
-brew install tldr
+brew install tldc
 brew install thefuck
 brew install zoxide
 ```
