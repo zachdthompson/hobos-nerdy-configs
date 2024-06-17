@@ -48,6 +48,8 @@ alias cat='bat'
 alias ls='eza --icons=always'
 alias cd="z"
 
+alias la='ls -la'
+
 # --- setup fzf theme ---
 fg="#CBE0F0"
 bg="#011628"
