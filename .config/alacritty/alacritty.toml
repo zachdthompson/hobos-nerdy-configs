@@ -1,6 +1,4 @@
-import = [
-    "~/.config/alacritty/themes/themes/tokyo-night.toml"
-]
+import = ["~/.config/alacritty/themes/themes/tokyo-night.toml"]
 
 [env]
 TERM = "xterm-256color"
@@ -11,7 +9,7 @@ padding.y = 10
 
 decorations = "Buttonless"
 
-opacity = 0.8
+opacity = 0.6
 blur = true
 
 option_as_alt = "Both"
@@ -20,4 +18,3 @@ option_as_alt = "Both"
 normal.family = "MesloLGL Nerd Font Mono"
 
 size = 12
-

@@ -4,14 +4,9 @@
 
 ## Overall Dependencies
 
-I am using homebrew at the moment, for two major reasons:
+The config is shown using Homebrew for MacOS. You can instead replace these with your personal package manager.
 
-- This aligns config between my MacOS and Fedora boxes
-- Fedora 40's RPM for Neovim comes with a bunch of crap in it.
-
-If you dont like homebrew, idk man. Its my repo.
-
-NPM is needed for the lsp configs
+I will soon make a one line installer for MacOS and Arch, the two platforms I use.
 
 ```bash
 brew install npm
@@ -66,6 +61,12 @@ brew install eza
 brew install tldc
 brew install thefuck
 brew install zoxide
+```
+
+## fzf Dependencies
+
+```bash
+git clone https://github.com/junegunn/fzf-git.sh.git
 ```
 
 ## bat Dependencies
