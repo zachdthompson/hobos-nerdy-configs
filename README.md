@@ -2,6 +2,13 @@
 
 .configs for programs I use cross platform, like Neovim and Alacritty. I am using GNU stow to make symlinks to make managing these files easier.
 
+## Quick Installers
+
+- [MacOS](mac-install)
+- [Arch Linux](arch-install)
+
+Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
+
 ## Overall Dependencies
 
 The config is shown using Homebrew for MacOS. You can instead replace these with your personal package manager.

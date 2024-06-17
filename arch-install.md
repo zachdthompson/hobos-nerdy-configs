@@ -38,3 +38,14 @@ stow --adopt .
 ```bash
 chsh -s /bin/zsh
 ```
+
+### Configure TMUX
+
+Enter into a tmux session:
+
+```brew
+tmux
+```
+
+Press <Ctl>b + I (Control-b, then CAPITAL I).
+Plugins should now install.

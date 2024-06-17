@@ -4,7 +4,7 @@ This will quickly walk through all my settings for MacOS and get you up and runn
 
 I prefer to use iTerm2, so the Alacritty installer steps are not included here.
 
-(Download iTerm2)[https://iterm2.com/]
+[Download iTerm2](https://iterm2.com/)
 
 ## Install Homebrew
 
