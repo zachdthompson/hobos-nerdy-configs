@@ -9,11 +9,11 @@
 
 Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
 
+# Each Package Explained
+
 ## Overall Dependencies
 
-The config is shown using Homebrew for MacOS. You can instead replace these with your personal package manager.
-
-I will soon make a one line installer for MacOS and Arch, the two platforms I use.
+The config is shown using Homebrew for MacOS. These calls can be replaced with your system package manager calls.
 
 ```bash
 brew install npm
