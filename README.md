@@ -2,19 +2,29 @@
 
 .configs for programs I use cross platform, like Neovim and Alacritty. I am using GNU stow to make symlinks to make managing these files easier.
 
+## Quick Installers
+
+- [MacOS](mac-install.md)
+- [Arch Linux](arch-install.md)
+
+Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
+
+# Each Package Explained
+
 ## Overall Dependencies
 
-I am using homebrew at the moment, for two major reasons:
-
-- This aligns config between my MacOS and Fedora boxes
-- Fedora 40's RPM for Neovim comes with a bunch of crap in it.
-
-If you dont like homebrew, idk man. Its my repo.
-
-NPM is needed for the lsp configs
+The config is shown using Homebrew for MacOS. These calls can be replaced with your system package manager calls.
 
 ```bash
 brew install npm
+```
+
+### Arch Specific
+
+xclip is needed in order for neovim to interact with your clipboard.
+
+```bash
+sudo pacman -S xclip
 ```
 
 I heavily reccomend you switch your CAPS key to be an additional ALT key. It will be better on your hands.
@@ -66,6 +76,12 @@ brew install eza
 brew install tldc
 brew install thefuck
 brew install zoxide
+```
+
+## fzf Dependencies
+
+```bash
+git clone https://github.com/junegunn/fzf-git.sh.git
 ```
 
 ## bat Dependencies

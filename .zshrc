@@ -28,7 +28,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 # Everything else
 else
   export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
-  source /home/linuxbrew/.linuxbrew/share/powerlevel10k/powerlevel10k.zsh-theme
+  source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
   source <(fzf --zsh)
 fi
 # End of lines configured by zsh-newuser-install
@@ -47,6 +47,8 @@ alias vim='nvim'
 alias cat='bat'
 alias ls='eza --icons=always'
 alias cd="z"
+
+alias la='ls -la'
 
 # --- setup fzf theme ---
 fg="#CBE0F0"
