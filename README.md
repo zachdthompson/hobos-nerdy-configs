@@ -4,8 +4,8 @@
 
 ## Quick Installers
 
-- [MacOS](mac-install)
-- [Arch Linux](arch-install)
+- [MacOS](mac-install.md)
+- [Arch Linux](arch-install.md)
 
 Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
 
