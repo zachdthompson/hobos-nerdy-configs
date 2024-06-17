@@ -2,14 +2,14 @@
 
 This gives quick setup for Arch specific platforms. This should work for most Linux distros, just replace pacman with whatever your package manager of choice is.
 
-## Install Dependant Packages
+## Install Dependent Packages
 
 ```bash
 sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit
 sudo pacman -S ttf-meslo-nerd ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
 ```
 
-## Create and Import Dependant Files
+## Create and Import Dependent Files
 
 ### Theme dependencies
 
