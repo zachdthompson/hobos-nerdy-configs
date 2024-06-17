@@ -12,6 +12,14 @@ I will soon make a one line installer for MacOS and Arch, the two platforms I us
 brew install npm
 ```
 
+### Arch Specific
+
+xclip is needed in order for neovim to interact with your clipboard.
+
+```bash
+sudo pacman -S xclip
+```
+
 I heavily reccomend you switch your CAPS key to be an additional ALT key. It will be better on your hands.
 This can be done in the keybind settings of most OS', or on custom firmware settings.
 
