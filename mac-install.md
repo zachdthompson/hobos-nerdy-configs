@@ -25,8 +25,9 @@ Most of those packages on the last line should error out as they are already ins
 ## Install Themes and Plugins
 
 ```bash
-git clone https://github.com/junegunn/fzf-git.sh.git ~/
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpgit clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpmm
+cd ~
+git clone https://github.com/junegunn/fzf-git.sh.git
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
@@ -36,7 +37,7 @@ curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/subl
 
 ```bash
 mkdir ~/dotfiles
-git clone git@github.com:zachdthompson/hobos-nerdy-configs.git ~/dotfiles
+git clone https://github.com/zachdthompson/hobos-nerdy-configs.git ~/dotfiles
 cd ~/dotfiles
 stow --adopt .
 ```

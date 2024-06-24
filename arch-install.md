@@ -5,8 +5,8 @@ This gives quick setup for Arch specific platforms. This should work for most Li
 ## Install Dependent Packages
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit
-sudo pacman -S ttf-meslo-nerd ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw
+yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
 ```
 
 ## Create and Import Dependent Files
@@ -14,7 +14,9 @@ sudo pacman -S ttf-meslo-nerd ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerl
 ### Theme dependencies
 
 ```bash
-git clone https://github.com/junegunn/fzf-git.sh.git ~/
+cd ~
+git clone https://github.com/junegunn/fzf-git.sh.git
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
@@ -28,7 +30,7 @@ This command imports the configs, and will stow them right away. Be sure the fir
 
 ```bash
 mkdir ~/dotfiles
-git clone git@github.com:zachdthompson/hobos-nerdy-configs.git ~/dotfiles
+git clone https://github.com/zachdthompson/hobos-nerdy-configs.git ~/dotfiles
 cd ~/dotfiles
 stow --adopt .
 ```
@@ -47,5 +49,33 @@ Enter into a tmux session:
 tmux
 ```
 
-Press <Ctl>b + I (Control-b, then CAPITAL I).
+Press `<Ctl>b + I` (Control-b, then CAPITAL I).
 Plugins should now install.
+
+## Setting up UFW
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from 10.2.0.0/16 to 22
+sudo ufw allow from 172.30.69.2 to 22
+sudo ufw enable
+```
+
+# Post Install Programs
+
+Optional programs that I use on a daily basis.
+
+```bash
+sudo pacman -S discord flatpak steam
+yay -S slack-desktop
+```
+
+## Setting up Bottles
+
+```bash
+flatpak install bottles
+```
+
+After bottles loads, select a new app and install Battle.net from the predefined list.
+Be sure to go in to dependencies and select `allfonts` to be installed.
