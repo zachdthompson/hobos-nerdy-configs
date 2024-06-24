@@ -14,7 +14,9 @@ yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
 ### Theme dependencies
 
 ```bash
-git clone https://github.com/junegunn/fzf-git.sh.git ~/
+cd ~
+git clone https://github.com/junegunn/fzf-git.sh.git
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
