@@ -5,7 +5,7 @@ This gives quick setup for Arch specific platforms. This should work for most Li
 ## Install Dependent Packages
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw
 yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
 ```
 
@@ -49,5 +49,33 @@ Enter into a tmux session:
 tmux
 ```
 
-Press <Ctl>b + I (Control-b, then CAPITAL I).
+Press `<Ctl>b + I` (Control-b, then CAPITAL I).
 Plugins should now install.
+
+## Setting up UFW
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from 10.2.0.0/16 to 22
+sudo ufw allow from 172.30.69.2 to 22
+sudo ufw enable
+```
+
+# Post Install Programs
+
+Optional programs that I use on a daily basis.
+
+```bash
+sudo pacman -S discord flatpak steam
+yay -S slack-desktop
+```
+
+## Setting up Bottles
+
+```bash
+flatpak install bottles
+```
+
+After bottles loads, select a new app and install Battle.net from the predefined list.
+Be sure to go in to dependencies and select `allfonts` to be installed.
