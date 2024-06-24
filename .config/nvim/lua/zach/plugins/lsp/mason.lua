@@ -40,6 +40,7 @@ return {
 				"taplo",
 				"markdown_oxide",
 				"jdtls",
+				"gopls",
 			},
 		})
 
