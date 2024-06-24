@@ -30,7 +30,7 @@ This command imports the configs, and will stow them right away. Be sure the fir
 
 ```bash
 mkdir ~/dotfiles
-git clone git@github.com:zachdthompson/hobos-nerdy-configs.git ~/dotfiles
+git clone https://github.com/zachdthompson/hobos-nerdy-configs.git ~/dotfiles
 cd ~/dotfiles
 stow --adopt .
 ```

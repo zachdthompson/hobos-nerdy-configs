@@ -37,7 +37,7 @@ curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/subl
 
 ```bash
 mkdir ~/dotfiles
-git clone git@github.com:zachdthompson/hobos-nerdy-configs.git ~/dotfiles
+git clone https://github.com/zachdthompson/hobos-nerdy-configs.git ~/dotfiles
 cd ~/dotfiles
 stow --adopt .
 ```
