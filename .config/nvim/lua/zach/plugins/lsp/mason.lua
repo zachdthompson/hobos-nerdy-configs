@@ -39,6 +39,7 @@ return {
 				"pyright",
 				"taplo",
 				"markdown_oxide",
+				"jdtls",
 			},
 		})
 
