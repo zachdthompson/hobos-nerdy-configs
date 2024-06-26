@@ -94,12 +94,23 @@ sudo ufw enable
 # Post Install Programs
 
 Optional programs that I use on a daily basis.
-You will need the multi lib library. Edit the config of pacman at `/etc/pacman.conf` and change the following:
+
+### Setup Multilib
+
+You will need the multi lib library. This isnot enabled by default on base arch. Edit the config of pacman at `/etc/pacman.conf` and change the following:
 
 ```bash
 [multilib]
 Include = /etc/pacman.d/mirrorlist
 ```
+
+Save the file, then run:
+
+```bash
+sudo pacman -Sy
+```
+
+### Install the Programs
 
 ```bash
 sudo pacman -S discord flatpak steam
