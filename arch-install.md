@@ -16,8 +16,7 @@ makepkg -si
 ```
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go
-yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go starship
 ```
 
 ## Create and Import Dependent Files
@@ -98,6 +97,7 @@ Optional programs that I use on a daily basis.
 ### Setup Multilib
 
 You will need the multi lib library. This isnot enabled by default on base arch. Edit the config of pacman at `/etc/pacman.conf` and change the following:
+This enables 32 bit apps, but steam needs them.
 
 ```bash
 [multilib]
