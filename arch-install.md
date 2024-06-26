@@ -86,8 +86,8 @@ git remote set-url origin git@github.com:zachdthompson/hobos-nerdy-configs.git
 ```bash
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-sudo ufw allow from 10.2.0.0/16 to 22
-sudo ufw allow from 172.30.69.2 to 22
+sudo ufw allow from 10.2.0.0/16 proto tcp to any port 22
+sudo ufw allow from 172.30.69.2/32 proto tcp to any port 22
 sudo ufw enable
 ```
 
