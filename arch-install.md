@@ -4,7 +4,7 @@ This gives quick setup for Arch specific platforms. This should work for most Li
 
 ## Install Dependent Packages
 
-### Install yay
+### Install yay (Now Optional)
 
 Yay is an AUR tool that lets you pull files from the Arch User Repo.
 
@@ -14,6 +14,8 @@ git clone https://aur.archlinux.org/yay.git
 cd yay
 makepkg -si
 ```
+
+### Install Needed Packages
 
 ```bash
 sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go starship
