@@ -4,6 +4,17 @@ This gives quick setup for Arch specific platforms. This should work for most Li
 
 ## Install Dependent Packages
 
+### Install yay
+
+Yay is an AUR tool that lets you pull files from the Arch User Repo.
+
+```bash
+pacman -S --needed git base-devel
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+```
+
 ```bash
 sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw
 yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
@@ -79,3 +90,8 @@ flatpak install bottles
 
 After bottles loads, select a new app and install Battle.net from the predefined list.
 Be sure to go in to dependencies and select `allfonts` to be installed.
+
+# TODOs
+
+- Create a folder where git clones can go in that arent just spammed in the home folder.
+  - This means I will need to update all the file locations in all configs, but it will be worth it.
