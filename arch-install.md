@@ -63,7 +63,17 @@ tmux
 Press `<Ctl>b + I` (Control-b, then CAPITAL I).
 Plugins should now install.
 
-## Setting up UFW
+## Post Install
+
+### Change Upstream to SSH
+
+I made the dotfiles pull via https so that I could do so without an SSH key. After an SSH key has been added, run the following command
+
+```bash
+git remote set-url origin git@github.com:zachdthompson/hobos-nerdy-configs.git
+```
+
+### Setting up UFW
 
 ```bash
 sudo ufw default deny incoming
