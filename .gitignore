@@ -1,1 +1,6 @@
 *lazy-lock.json
+
+# Prevent SSH key leaks lol
+.ssh/*
+!.ssh/config
+!.ssh/known_hosts
