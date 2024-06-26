@@ -52,6 +52,14 @@ stow --adopt .
 chsh -s /bin/zsh
 ```
 
+If you log out and log back in and the default shell has not changed, try this:
+
+```bash
+pkill -KILL -u <your user>
+```
+
+This will kill all your sessions. Log back in and it should be running again.
+
 ### Configure TMUX
 
 Enter into a tmux session:
