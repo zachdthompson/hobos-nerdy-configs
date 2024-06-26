@@ -16,7 +16,7 @@ makepkg -si
 ```
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go
 yay -Sy ttf-meslo-nerd-font-powerlevel10k zsh-theme-powerlevel10k-git
 ```
 
