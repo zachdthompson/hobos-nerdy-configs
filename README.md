@@ -9,6 +9,8 @@
 
 Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
 
+![CurrentLook](CurrentLook.png)
+
 # Each Package Explained
 
 ## Overall Dependencies
