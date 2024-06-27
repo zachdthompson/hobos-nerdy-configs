@@ -20,18 +20,17 @@ bindkey -e
 # MacOS Config
 if [[ "$OSTYPE" == "darwin"* ]]; then
   export PATH=/opt/homebrew/bin:$PATH
-  source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+  #source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
   eval "$(fzf --zsh)"
 # Everything else
 else
-  export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
-  eval "$(starship init zsh)"
+  #export PATH=/home/linuxbrew/.linuxbrew/bin:$PATH
   source <(fzf --zsh)
 fi
 # End of lines configured by zsh-newuser-install
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+#[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 
 # -- Alias section --
@@ -113,3 +112,6 @@ export PATH="$HOME/.local/share/nvim/mason/bin/:$PATH"
 plugins=(git ssh-agent)
 
 export EDITOR=nvim
+
+eval "$(starship init zsh)"
+
