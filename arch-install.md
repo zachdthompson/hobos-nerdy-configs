@@ -74,6 +74,13 @@ Plugins should now install.
 
 ## Post Install
 
+### Generate SSH Keys
+
+```bash
+ssh-keygen /home/hobo/.ssh/hobo
+ssh-keygen /home/hobo/.ssh/github
+```
+
 ### Change Upstream to SSH
 
 I made the dotfiles pull via https so that I could do so without an SSH key. After an SSH key has been added, run the following command
