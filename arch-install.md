@@ -18,7 +18,7 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go starship
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go starship unzip
 ```
 
 ## Create and Import Dependent Files
