@@ -1,7 +1,12 @@
 if status is-interactive
 
+  fish_add_path -m /usr/local/bin
+  # --- Homebrew Path for MacOS ---
+  if test (uname) = "Darwin"
+    set -x PATH /opt/homebrew/bin $PATH
+  end
+
   # --- Alias Stuff ---
-  alias la 'ls -la'
   alias edit-fish 'nvim ~/.config/fish/config.fish'
   alias reload-fish 'source ~/.config/fish/config.fish'
 
@@ -16,10 +21,13 @@ if status is-interactive
   alias cat 'bat'
   set -x BAT_THEME tokyonight_night
 
+  # --- Eza Stuff ---
+  set -Ux EZA_STANDARD_OPTIONS --long --all
+
   # ---- Zoxide (better cd) ----
   alias cd 'z'
-  eval (zoxide init fish)
+  zoxide init fish | source
   
   # Initialize starship
-  eval (starship init fish)
+  starship init fish | source
 end
