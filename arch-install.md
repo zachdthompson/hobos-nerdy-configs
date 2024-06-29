@@ -18,7 +18,7 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide foot tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip
+sudo pacman -S fish stow neovim fzf bat eza tldc thefuck npm zoxide foot tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip
 ```
 
 ## Create and Import Dependent Files
@@ -47,8 +47,10 @@ stow --adopt .
 
 ### Change default shell
 
+I am now using fish instead of zsh as my shell
+
 ```bash
-chsh -s /bin/zsh
+chsh -s /bin/fish
 ```
 
 If you log out and log back in and the default shell has not changed, try this:
