@@ -18,7 +18,7 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide alacritty tmux lazygit ttf-meslo-nerd ufw go starship unzip
+sudo pacman -S zsh stow neovim fzf bat eza tldr thefuck npm zoxide foot tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip
 ```
 
 ## Create and Import Dependent Files
@@ -32,8 +32,6 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
-cd ~
-git clone https://github.com/alacritty/alacritty-theme ~/.config/alacritty/themes
 ```
 
 ### Import the dotfiles configs
