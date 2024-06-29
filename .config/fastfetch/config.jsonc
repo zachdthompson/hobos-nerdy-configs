@@ -66,6 +66,22 @@
             "key": "Uptime - ",
             "keyColor": "34", 
         },
+        {
+            "type": "custom",
+            "format": "======Hardware======"
+        },
+        {
+            "type": "cpu",
+            "showPeCoreCount": true,
+            "temp": true
+        },
+        {
+            "type": "gpu",
+            "temp": true
+        },
+        "memory",
+        "physicalmemory",
+        "disk",
         "break",
 	{
 	    "type": "colors",
