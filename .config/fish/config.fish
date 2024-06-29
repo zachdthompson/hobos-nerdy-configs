@@ -22,7 +22,8 @@ if status is-interactive
   set -x BAT_THEME tokyonight_night
 
   # --- Eza Stuff ---
-  set -Ux EZA_STANDARD_OPTIONS --long --all
+  set -Ux EZA_STANDARD_OPTIONS --long --all --icons
+
 
   # ---- Zoxide (better cd) ----
   alias cd 'z'
