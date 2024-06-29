@@ -18,13 +18,14 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S fish stow neovim fzf bat eza tldc thefuck npm zoxide kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols
+sudo pacman -S fish stow neovim fzf bat tldc thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols
 ```
 
 ### Fisher Packages Needed
 
 ```bash
 fisher install plttn/fish-eza
+fisher install kidonng/zoxide.fish
 ```
 
 ## Create and Import Dependent Files
