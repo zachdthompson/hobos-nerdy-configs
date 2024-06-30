@@ -1,10 +1,6 @@
 if status is-interactive
 
-  fish_add_path -m /usr/local/bin
-  # --- Homebrew Path for MacOS ---
-  if test (uname) = "Darwin"
-    set -x PATH /opt/homebrew/bin $PATH
-  end
+  #fish_add_path -m /usr/local/bin
 
   # --- Alias Stuff ---
   alias edit-fish 'nvim ~/.config/fish/config.fish'
