@@ -18,7 +18,7 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S fish stow neovim fzf bat tldc thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols fastfetch spectacle
+sudo pacman -S fish stow neovim fzf bat tldc thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols fastfetch spectacle solaar
 ```
 
 ### Fisher Packages Needed
@@ -146,3 +146,4 @@ Be sure to go in to dependencies and select `allfonts` to be installed.
 
 - Create a folder where git clones can go in that arent just spammed in the home folder.
   - This means I will need to update all the file locations in all configs, but it will be worth it.
+- Create a package list that explains what each package is and why its needed, for future cleanup/use
