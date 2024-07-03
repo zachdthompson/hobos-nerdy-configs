@@ -28,4 +28,9 @@ if status is-interactive
   
   # Initialize starship
   starship init fish | source
+
+  # Setup thefuck
+  thefuck --alias | source
 end
+
+
