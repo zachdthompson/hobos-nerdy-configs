@@ -7,7 +7,7 @@ This gives quick setup for Fedora.
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
+sudo dnf fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
 ```
 
 ### Install COPR Packages
