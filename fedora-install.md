@@ -140,7 +140,6 @@ sudo dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfre
 
 ```bash
 sudo dnf install discord steam flatpak
-yay -S slack-desktop
 ```
 
 ## Setting up Bottles
