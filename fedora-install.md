@@ -39,7 +39,6 @@ curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fi
 
 ```bash
 fisher install plttn/fish-eza
-fisher install kidonng/zoxide.fish
 ```
 
 ## Create and Import Dependent Files
@@ -147,7 +146,7 @@ yay -S slack-desktop
 ## Setting up Bottles
 
 ```bash
-flatpak install bottles
+sudo dnf install bottles
 ```
 
 After bottles loads, select a new app and install Battle.net from the predefined list.
