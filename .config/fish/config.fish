@@ -22,9 +22,7 @@ if status is-interactive
 
 
   # ---- Zoxide (better cd) ----
-  alias cd 'z'
-  set --universal zoxide_hook
-
+  zoxide init fish --cmd cd | source
   
   # Initialize starship
   starship init fish | source
