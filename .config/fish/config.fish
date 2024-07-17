@@ -5,6 +5,7 @@ if status is-interactive
   # --- Alias Stuff ---
   alias edit-fish 'nvim ~/.config/fish/config.fish'
   alias reload-fish 'source ~/.config/fish/config.fish'
+  alias dnf 'dnf5'
 
   # --- Neovim Stuff ---
   set -x EDITOR nvim
