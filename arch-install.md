@@ -18,7 +18,7 @@ makepkg -si
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S fish stow neovim fzf bat tldr thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols fastfetch spectacle solaar zoxide
+sudo pacman -S fish stow neovim fzf bat tldr thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols fastfetch spectacle solaar zoxide fuse
 ```
 
 ### Fisher Packages Needed
