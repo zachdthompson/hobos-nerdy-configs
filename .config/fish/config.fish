@@ -35,5 +35,3 @@ if status is-interactive
     /home/hobo/Scripts/launcher.sh
   end
 end
-
-

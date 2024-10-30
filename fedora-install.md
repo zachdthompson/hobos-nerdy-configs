@@ -7,7 +7,7 @@ This gives quick setup for Fedora.
 ### Install Needed Packages
 
 ```bash
-sudo dnf fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
+sudo dnf install fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
 ```
 
 ### Install COPR Packages
@@ -45,14 +45,12 @@ fisher install plttn/fish-eza
 
 ### Fonts
 
-For some unknown reason, you cannot just install fonts with `dnf`...
+```bash
+cd ~/Downloads
+wget https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/Meslo/L/Regular/MesloLGLNerdFontMono-Regular.ttf
+```
 
-Navigate to [the official nerd-fonts page](https://www.nerdfonts.com/) and download
-
-- [DevIcons](http://vorillaz.github.io/devicons/#/main)
-- [MesloLG Nerd Font](https://www.nerdfonts.com/font-downloads)
-
-You will then need to extract and install these. The easiest way is to just open the font manager in KDE and drag them over. Install them for the SYSTEM!
+Install the downloaded font with Font Manager for the whole SYSTEM!
 
 ### Theme dependencies
 
