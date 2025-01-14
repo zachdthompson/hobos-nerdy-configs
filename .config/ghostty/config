@@ -1,0 +1,28 @@
+# Theme settings
+theme = tokyonight
+background-opacity = 0.9
+background-blur-radius = 10
+#window-decoration = false
+
+# MacOS settings
+macos-option-as-alt = true
+macos-titlebar-proxy-icon = hidden
+macos-titlebar-style = hidden
+macos-secure-input-indication = false
+
+# Linux settings
+gtk-titlebar = true
+window-theme = ghostty
+clipboard-read = allow
+clipboard-write = allow
+
+# Keybinds for MacOS 
+keybind = cmd+d=close_surface
+keybind = cmd+n=new_split:right
+keybind = cmd+f=toggle_fullscreen
+
+# Font settings
+font-family = MesloLGL Nerd Font Mono
+font-family-bold = auto
+font-family-italic = auto
+font-family-bold-italic = auto
