@@ -22,15 +22,16 @@ if status is-interactive
 
 
   # ---- Zoxide (better cd) ----
-  alias cd 'z'
-  set --universal zoxide_hook
-
+  zoxide init fish --cmd cd | source
   
   # Initialize starship
   starship init fish | source
 
   # Setup thefuck
   thefuck --alias | source
+
+  # Functions
+  function launch-tsm
+    /home/hobo/Scripts/launcher.sh
+  end
 end
-
-

@@ -6,6 +6,7 @@
 
 - [MacOS](mac-install.md)
 - [Arch Linux](arch-install.md)
+- [Fedora 41](fedora-install.md)
 
 Note that the Arch Install should work for most distros, I just use arch, so its tuned to that.
 

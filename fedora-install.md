@@ -1,34 +1,56 @@
-# Simple Arch Install
+# Simple Fedora Install
 
-This gives quick setup for Arch specific platforms. This should work for most Linux distros, just replace pacman with whatever your package manager of choice is.
+This gives quick setup for Fedora.
 
 ## Install Dependent Packages
-
-### Install yay (Now Optional)
-
-Yay is an AUR tool that lets you pull files from the Arch User Repo.
-
-```bash
-pacman -S --needed git base-devel
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si
-```
 
 ### Install Needed Packages
 
 ```bash
-sudo pacman -S fish stow neovim fzf bat tldr thefuck npm kitty tmux lazygit ttf-meslo-nerd ufw go starship unzip xclip fisher ttf-nerd-fonts-symbols fastfetch spectacle solaar zoxide fuse
+sudo dnf install fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
+```
+
+### Install COPR Packages
+
+Note that COPR packages are not official packages and should be treated with care.
+
+#### Lazygit
+
+```bash
+sudo dnf copr enable atim/lazygit -y
+sudo dnf install lazygit
+```
+
+#### Starship
+
+```bash
+sudo dnf copr enable atim/starship -y
+sudo dnf install starship
+```
+
+#### Fisher
+
+```bash
+fish
+curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
 ```
 
 ### Fisher Packages Needed
 
 ```bash
 fisher install plttn/fish-eza
-fisher install kidonng/zoxide.fish
 ```
 
 ## Create and Import Dependent Files
+
+### Fonts
+
+```bash
+cd ~/Downloads
+wget https://github.com/ryanoasis/nerd-fonts/blob/master/patched-fonts/Meslo/L/Regular/MesloLGLNerdFontMono-Regular.ttf
+```
+
+Install the downloaded font with Font Manager for the whole SYSTEM!
 
 ### Theme dependencies
 
@@ -96,47 +118,32 @@ I made the dotfiles pull via https so that I could do so without an SSH key. Aft
 git remote set-url origin git@github.com:zachdthompson/hobos-nerdy-configs.git
 ```
 
-### Setting up UFW
+### Setup FirewallD
 
-```bash
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw allow from 10.2.0.0/16 proto tcp to any port 22
-sudo ufw allow from 172.30.69.2/32 proto tcp to any port 22
-sudo ufw enable
-```
+We will not be using UFW on Fedora. My TODO is to setup FirewallD configs.
 
 # Post Install Programs
 
 Optional programs that I use on a daily basis.
 
-### Setup Multilib
+### Enable Non-Open Source
 
-You will need the multi lib library. This isnot enabled by default on base arch. Edit the config of pacman at `/etc/pacman.conf` and change the following:
-This enables 32 bit apps, but steam needs them.
-
-```bash
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-```
-
-Save the file, then run:
+In order to install our programs, we will need non free repos.
 
 ```bash
-sudo pacman -Sy
+sudo dnf install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 ```
 
 ### Install the Programs
 
 ```bash
-sudo pacman -S discord flatpak steam
-yay -S slack-desktop
+sudo dnf install discord steam flatpak
 ```
 
 ## Setting up Bottles
 
 ```bash
-flatpak install bottles
+sudo dnf install bottles
 ```
 
 After bottles loads, select a new app and install Battle.net from the predefined list.
