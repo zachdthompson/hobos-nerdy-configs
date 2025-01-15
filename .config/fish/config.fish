@@ -12,6 +12,7 @@ if status is-interactive
   alias vi 'nvim'
   alias nano 'nvim'
   alias vim 'nvim'
+  alias ls='eza --icons=always'
 
   # --- Bat Stuff ---
   alias cat 'bat'
