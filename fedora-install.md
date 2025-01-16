@@ -7,7 +7,7 @@ This gives quick setup for Fedora.
 ### Install Needed Packages
 
 ```bash
-sudo dnf install fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar
+sudo dnf install fish stow neovim fzf bat tldr thefuck npm kitty tmux go unzip xclip fastfetch spectacle solaar ghostty
 ```
 
 ### Install COPR Packages
@@ -117,10 +117,6 @@ I made the dotfiles pull via https so that I could do so without an SSH key. Aft
 ```bash
 git remote set-url origin git@github.com:zachdthompson/hobos-nerdy-configs.git
 ```
-
-### Setup FirewallD
-
-We will not be using UFW on Fedora. My TODO is to setup FirewallD configs.
 
 # Post Install Programs
 

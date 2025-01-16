@@ -2,10 +2,6 @@
 
 This will quickly walk through all my settings for MacOS and get you up and running.
 
-I prefer to use iTerm2, so the Alacritty installer steps are not included here.
-
-[Download iTerm2](https://iterm2.com/)
-
 ## Install Homebrew
 
 ```bash
@@ -17,7 +13,7 @@ I prefer to use iTerm2, so the Alacritty installer steps are not included here.
 ```bash
 brew install zsh npm stow neovim fzf bat cat eza tldr thefuck zoxide lazygit
 brew install tmux font-monaspace-nerd-font font-noto-sans-symbols-2
-brew install bash bc coreutils gawk gh glab gsed jq nowplaying-cli
+brew install bash bc coreutils gawk gh glab gsed jq nowplaying-cli ghostty
 ```
 
 Most of those packages on the last line should error out as they are already installed, however on my main Mac I was missing a few, so I included all of them.
