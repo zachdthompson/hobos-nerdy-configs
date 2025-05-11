@@ -57,3 +57,9 @@ tmux
 
 Press <Ctl>b + I (Control-b, then CAPITAL I).
 Plugins should now install.
+
+### Configure upstream
+
+```bash
+git remote set-url origin git@github.com:zachdthompson/hobos-nerdy-configs.git
+```

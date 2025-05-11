@@ -4,3 +4,7 @@
 .ssh/*
 !.ssh/config
 !.ssh/known_hosts
+
+# Prevent random fish files
+fish/conf.d/*
+fish/functions/*
