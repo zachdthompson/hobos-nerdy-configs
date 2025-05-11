@@ -1,6 +1,6 @@
 # Theme settings
 theme = tokyonight
-background-opacity = 0.7
+background-opacity = 0.9
 background-blur-radius = 10
 #window-decoration = false
 

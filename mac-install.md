@@ -11,12 +11,19 @@ This will quickly walk through all my settings for MacOS and get you up and runn
 ## Install Dependent Packages
 
 ```bash
-brew install zsh npm stow neovim fzf bat cat eza tldr thefuck zoxide lazygit
-brew install tmux font-monaspace-nerd-font font-noto-sans-symbols-2
-brew install bash bc coreutils gawk gh glab gsed jq nowplaying-cli ghostty
+brew install fish stow neovim fzf bat tldr thefuck npm kitty tmux lazygit starship unzip xclip fisher fastfetch zoxide font-monaspace-nerd-font font-noto-sans-symbols-2 eza
 ```
 
-Most of those packages on the last line should error out as they are already installed, however on my main Mac I was missing a few, so I included all of them.
+These packages are needed for the rest of the configs to function properly.
+
+### Change Default Shell
+
+I had to change my shell in a weird way due to fish not being a standard shell.
+
+```bash
+echo "/opt/homebrew/bin/fish" | sudo tee -a /etc/shells
+sudo chsh -s /opt/homebrew/bin/fish "$USER"
+```
 
 ## Install Themes and Plugins
 
@@ -39,12 +46,6 @@ stow --adopt .
 ```
 
 ## Final Setup
-
-### Change Default Shell
-
-```brew
-chsh -s /bin/zsh
-```
 
 ### Configure TMUX
 
