@@ -31,8 +31,6 @@ if status is-interactive
   # Setup thefuck
   thefuck --alias | source
 
-  # Functions
-  function launch-tsm
-    /home/hobo/Scripts/launcher.sh
-  end
+
 end
+
