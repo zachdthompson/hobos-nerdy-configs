@@ -31,10 +31,6 @@ unset rc
 alias edit-bash='nvim ~/.bashrc'
 alias reload-bash='source ~/.bashrc'
 
-# Keep fish helpers if you still bounce between shells
-alias edit-fish='nvim ~/.config/fish/config.fish'
-alias reload-fish='source ~/.config/fish/config.fish'
-
 # --- Bat ---
 export BAT_THEME="tokyonight_night"
 alias cat='bat'
@@ -60,3 +56,4 @@ fi
 if command -v thefuck >/dev/null 2>&1; then
   eval "$(thefuck --alias)"
 fi
+
