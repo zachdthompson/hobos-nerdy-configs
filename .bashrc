@@ -28,7 +28,7 @@ unset rc
 [[ $- != *i* ]] && return
 
 # --- Aliases ---
-alias edit-bash='nvim ~/.bashrc'
+alias edit-bash='vi ~/.bashrc'
 alias reload-bash='source ~/.bashrc'
 
 # --- Bat ---
