@@ -1,6 +1,6 @@
 # Hobo's Nerdy Configs
 
-.configs for programs I use cross platform, like Neovim and Alacritty. I am using GNU stow to make symlinks to make managing these files easier.
+This is my current setup for my personal linux devices, not including my servers. 
 
 ## Quick Installers
 
