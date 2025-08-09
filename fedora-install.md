@@ -6,9 +6,12 @@ This gives quick setup for Fedora.
 
 I have completely removed most of my configuration down to as little as possible. I will likely write a blog post on this at some point, but the TL;DR is that most of what I have I cannot use in an enterprise environment at work. I cant use fish, I use vim because lazy-nvim isnt feasible, etc. I cant use tmux because I cant be pushing my personal config to enterprise machines. 
 
-Fish > Bash
-Nvim > vim
-tmux > terminator
+- Fish > Minimal zsh
+
+- Nvim > vim
+
+- tmux > terminator
+
 (just to list a few changes)
 
 Despite all these changes, I feel like my experience is 95% of the way there to what it was before. 
@@ -17,16 +20,16 @@ Despite all these changes, I feel like my experience is 95% of the way there to 
 
 A big push to my configs being minimal is to limit the amount of weird third party repos I use. I only use the fedora non-free and the official microsoft repository for VS code. Third party repos have come under a lot of fire recently, and until a better solution is figured out for ensuring non-malicious code uploads, I will be going back to basics.
 
-## Install Dependent Packages
+I will soon be including resources for building/getting the few COPR packages I have from scratch instead of using COPR.
 
-### Install Needed Packages
+## Install Packages
 
 ### Built in Packages
 ```bash
-sudo dnf install stow bat unzip xclip fastfetch terminator
+sudo dnf install stow bat unzip xclip fastfetch terminator zsh zsh-syntax-highlighting zsh-autosuggestions
 ```
 
-### Install Limited 3rd Party Packages
+### Limited 3rd Party Packages
 
 Note that any 3rd party packages are not official packages and should be treated with care.
 
@@ -60,6 +63,16 @@ sudo dnf copr enable atim/starship -y
 sudo dnf install starship
 ```
 
+### Source Installs
+
+#### fast-syntax-hightlighting
+
+```bash
+mkdir -p ~/.zsh
+git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git \
+  ~/.zsh/fast-syntax-highlighting
+```
+
 ## Create and Import Dependent Files
 
 ### Meslo LGL Nerd Font Mono
@@ -74,13 +87,15 @@ fc-cache -fv
 rm Meslo.zip
 ```
 
-### Theme dependencies
+<!-- ### Theme dependencies
+
+THIS ISNT WORKING. Gotta fix this, commenting out for push
 
 ```bash
 mkdir -p "$(bat --config-dir)/themes"
 cd "$(bat --config-dir)/themes"
 curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
-```
+``` -->
 
 ## Import the dotfiles configs
 
