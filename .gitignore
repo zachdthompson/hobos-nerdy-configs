@@ -1,10 +1,27 @@
-*lazy-lock.json
+# ─── SSH: config only, never keys or machine state ───────
+shell/.ssh/*
+!shell/.ssh/config
+known_hosts*
+id_*
+*.pem
+*.key
 
-# Prevent SSH key leaks lol
-.ssh/*
-!.ssh/config
-!.ssh/known_hosts
+# ─── Machine-local overrides (live in $HOME, never in git) ─
+.gitconfig.local
+.bashrc.local
+.zshrc.local
+.tmux.local.conf
 
-# Prevent random fish files
-fish/conf.d/*
-fish/functions/*
+# ─── nvim: folded into the repo, so keep runtime junk out ─
+nvim/.config/nvim/lua/local.lua
+nvim/.config/nvim/parser/
+nvim/.config/nvim/spell/
+nvim/.config/nvim/lazy-lock.json
+
+# ─── fish writes these itself ────────────────────────────
+desktop/.config/fish/fish_variables
+desktop/.config/fish/conf.d/
+desktop/.config/fish/functions/
+desktop/.config/fish/completions/
+
+.dotfiles-backup/

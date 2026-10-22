@@ -1,0 +1,12 @@
+$include /etc/inputrc
+
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set colored-stats on
+set colored-completion-prefix on
+set mark-symlinked-directories on
+set bell-style none
+
+# Up/Down search history by what's already typed
+"\e[A": history-search-backward
+"\e[B": history-search-forward

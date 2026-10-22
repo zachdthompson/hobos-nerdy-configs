@@ -1,0 +1,585 @@
+local lib = require("nvim-tree.lib")
+local log = require("nvim-tree.log")
+local utils = require("nvim-tree.utils")
+local core = require("nvim-tree.core")
+local events = require("nvim-tree.events")
+local notify = require("nvim-tree.notify")
+
+local find_file = require("nvim-tree.actions.finders.find-file").fn
+
+local Class = require("nvim-tree.classic")
+local DirectoryNode = require("nvim-tree.node.directory")
+local FileNode = require("nvim-tree.node.file")
+local Node = require("nvim-tree.node")
+
+---@alias ClipboardAction "copy" | "cut"
+---@alias ClipboardData table<ClipboardAction, Node[]>
+
+---@alias ClipboardActionFn fun(source: string, dest: string): boolean, string?
+
+---@class (exact) Clipboard: nvim_tree.Class
+---@field private explorer Explorer
+---@field private data ClipboardData
+---@field private clipboard_name string
+---@field private reg string
+local Clipboard = Class:extend()
+
+---@class Clipboard
+---@overload fun(args: ClipboardArgs): Clipboard
+
+---@class (exact) ClipboardArgs
+---@field explorer Explorer
+
+---@protected
+---@param args ClipboardArgs
+function Clipboard:new(args)
+  self.explorer = args.explorer
+
+  self.data = {
+    copy = {},
+    cut = {},
+  }
+
+  self.clipboard_name = self.explorer.opts.actions.use_system_clipboard and "system" or "neovim"
+  self.reg = self.explorer.opts.actions.use_system_clipboard and "+" or "1"
+end
+
+---@param source string
+---@param destination string
+---@return boolean
+---@return string|nil
+local function do_copy(source, destination)
+  local source_stats, err = vim.uv.fs_stat(source)
+
+  if not source_stats then
+    log.line("copy_paste", "do_copy fs_stat '%s' failed '%s'", source, err)
+    return false, err
+  end
+
+  log.line("copy_paste", "do_copy %s '%s' -> '%s'", source_stats.type, source, destination)
+
+  if source == destination then
+    log.line("copy_paste", "do_copy source and destination are the same, exiting early")
+    return true
+  end
+
+  if source_stats.type == "file" then
+    local success
+    success, err = vim.uv.fs_copyfile(source, destination)
+    if not success then
+      log.line("copy_paste", "do_copy fs_copyfile failed '%s'", err)
+      return false, err
+    end
+    return true
+  elseif source_stats.type == "directory" then
+    local handle
+    handle, err = vim.uv.fs_scandir(source)
+    if type(handle) == "string" then
+      return false, handle
+    elseif not handle then
+      log.line("copy_paste", "do_copy fs_scandir '%s' failed '%s'", source, err)
+      return false, err
+    end
+
+    local success
+    success, err = vim.uv.fs_mkdir(destination, source_stats.mode)
+    if not success then
+      log.line("copy_paste", "do_copy fs_mkdir '%s' failed '%s'", destination, err)
+      return false, err
+    end
+
+    while true do
+      local name, _ = vim.uv.fs_scandir_next(handle)
+      if not name then
+        break
+      end
+
+      local new_name = utils.path_join({ source, name })
+      local new_destination = utils.path_join({ destination, name })
+      success, err = do_copy(new_name, new_destination)
+      if not success then
+        return false, err
+      end
+    end
+  else
+    err = string.format("'%s' illegal file type '%s'", source, source_stats.type)
+    log.line("copy_paste", "do_copy %s", err)
+    return false, err
+  end
+
+  return true
+end
+
+---Paste a single item with no conflict handling.
+---@param source string
+---@param dest string
+---@param action ClipboardAction
+---@param action_fn ClipboardActionFn
+local function do_paste_one(source, dest, action, action_fn)
+  log.line("copy_paste", "do_paste_one '%s' -> '%s'", source, dest)
+  local success, err = action_fn(source, dest)
+  if not success then
+    notify.error("Could not " .. action .. " " .. notify.render_path(source) .. " - " .. (err or "???"))
+  end
+  find_file(utils.path_remove_trailing(dest))
+end
+
+---@param node Node
+---@param clip ClipboardData
+local function toggle(node, clip)
+  if node.name == ".." then
+    return
+  end
+  local notify_node = notify.render_path(node.absolute_path)
+
+  if utils.array_remove(clip, node) then
+    notify.info(notify_node .. " removed from clipboard.")
+    return
+  end
+
+  table.insert(clip, node)
+  notify.info(notify_node .. " added to clipboard.")
+end
+
+---Clear copied and cut
+function Clipboard:clear_clipboard()
+  self.data.copy = {}
+  self.data.cut = {}
+  notify.info("Clipboard has been emptied.")
+  self.explorer.renderer:draw()
+end
+
+---Bulk add/remove nodes to/from a clipboard list.
+---@private
+---@param nodes Node[] filtered nodes to operate on
+---@param from Node[] list to remove from (the opposite clipboard)
+---@param to Node[] list to add to
+---@param verb string notification verb ("added to" or "cut to")
+function Clipboard:bulk_clipboard(nodes, from, to, verb)
+  local added = 0
+  local removed = 0
+  for _, node in ipairs(nodes) do
+    if node.name ~= ".." then
+      utils.array_remove(from, node)
+      if utils.array_remove(to, node) then
+        removed = removed + 1
+      else
+        table.insert(to, node)
+        added = added + 1
+      end
+    end
+  end
+  if added > 0 then
+    notify.info(string.format("%d nodes %s clipboard.", added, verb))
+  elseif removed > 0 then
+    notify.info(string.format("%d nodes removed from clipboard.", removed))
+  end
+  self.explorer.renderer:draw()
+end
+
+---@private
+---@param node_or_nodes Node|Node[]
+---@return boolean
+function Clipboard:is_nodes_array(node_or_nodes)
+  if type(node_or_nodes) == "table" and node_or_nodes.is and node_or_nodes:is(Node) then
+    return false
+  end
+  return true
+end
+
+---Copy one or more nodes
+---@param node_or_nodes Node|Node[]
+function Clipboard:copy(node_or_nodes)
+  if self:is_nodes_array(node_or_nodes) == false then
+    utils.array_remove(self.data.cut, node_or_nodes)
+    toggle(node_or_nodes, self.data.copy)
+    self.explorer.renderer:draw()
+  else
+    self:bulk_clipboard(utils.filter_descendant_nodes(node_or_nodes), self.data.cut, self.data.copy, "added to")
+  end
+  self:copy_absolute_path(self.data.copy, { notify = false })
+end
+
+---Cut one or more nodes
+---@param node_or_nodes Node|Node[]
+function Clipboard:cut(node_or_nodes)
+  if self:is_nodes_array(node_or_nodes) == false then
+    utils.array_remove(self.data.copy, node_or_nodes)
+    toggle(node_or_nodes, self.data.cut)
+    self.explorer.renderer:draw()
+  else
+    self:bulk_clipboard(utils.filter_descendant_nodes(node_or_nodes), self.data.copy, self.data.cut, "cut to")
+  end
+  self:copy_absolute_path(self.data.cut, { notify = false })
+end
+
+---Clear clipboard for action and reload to reflect filesystem changes from paste.
+---@private
+---@param action ClipboardAction
+function Clipboard:finish_paste(action)
+  self.data[action] = {}
+  self.explorer:reload_explorer()
+end
+
+---Resolve conflicting paste items.
+---Single conflict: per-file prompt with full-path rename (pre-visual-mode behavior).
+---Multiple conflicts: batch prompt with suffix rename.
+---@private
+---@param conflict {node: Node, dest: string}[]
+---@param destination string
+---@param action ClipboardAction
+---@param action_fn ClipboardActionFn
+function Clipboard:resolve_conflicts(conflict, destination, action, action_fn)
+  if #conflict == 1 then
+    local source = conflict[1].node.absolute_path
+    local dest = conflict[1].dest
+
+    local function rename_prompt(default_dest)
+      vim.ui.input({ prompt = "Rename to ", default = default_dest, completion = "dir" }, function(new_dest)
+        utils.clear_prompt()
+        if not new_dest or new_dest == "" then
+          self:finish_paste(action)
+          return
+        end
+        if vim.uv.fs_stat(new_dest) then
+          self:resolve_conflicts({ { node = conflict[1].node, dest = new_dest } }, destination, action, action_fn)
+        else
+          do_paste_one(source, new_dest, action, action_fn)
+          self:finish_paste(action)
+        end
+      end)
+    end
+
+    if source == dest then
+      rename_prompt(dest)
+    else
+      local prompt_select = "Overwrite " .. dest .. " ?"
+      lib.prompt(prompt_select .. " R(ename)/y/n: ", prompt_select,
+        { "", "y", "n" }, { "Rename", "Yes", "No" },
+        "nvimtree_overwrite_rename",
+        function(item_short)
+          utils.clear_prompt()
+          if item_short == "y" then
+            do_paste_one(source, dest, action, action_fn)
+            self:finish_paste(action)
+          elseif item_short == "" or item_short == "r" then
+            rename_prompt(dest)
+          else
+            self:finish_paste(action)
+          end
+        end)
+    end
+    return
+  end
+
+  local prompt_select = #conflict .. " file(s) already exist"
+  local prompt_input = prompt_select .. ". R(ename suffix)/y/n: "
+
+  lib.prompt(prompt_input, prompt_select,
+    { "", "y", "n" },
+    { "Rename (suffix)", "Overwrite all", "Skip all" },
+    "nvimtree_paste_conflict",
+    function(item_short)
+      utils.clear_prompt()
+      if item_short == "y" then
+        for _, item in ipairs(conflict) do
+          do_paste_one(item.node.absolute_path, item.dest, action, action_fn)
+        end
+        self:finish_paste(action)
+      elseif item_short == "" or item_short == "r" then
+        vim.ui.input({ prompt = "Suffix: " }, function(suffix)
+          utils.clear_prompt()
+          if not suffix or suffix == "" then
+            return
+          end
+          local still_conflict = {}
+          for _, item in ipairs(conflict) do
+            local basename = vim.fn.fnamemodify(item.node.name, ":r")
+            local extension = vim.fn.fnamemodify(item.node.name, ":e")
+            local new_name = extension ~= "" and (basename .. suffix .. "." .. extension) or (item.node.name .. suffix)
+            local new_dest = utils.path_join({ destination, new_name })
+            local stats = vim.uv.fs_stat(new_dest)
+            if stats then
+              table.insert(still_conflict, { node = item.node, dest = new_dest })
+            else
+              do_paste_one(item.node.absolute_path, new_dest, action, action_fn)
+            end
+          end
+          if #still_conflict > 0 then
+            self:resolve_conflicts(still_conflict, destination, action, action_fn)
+          else
+            self:finish_paste(action)
+          end
+        end)
+      else
+        self:finish_paste(action)
+      end
+    end)
+end
+
+--- Transforms the copied absolute paths on register to node
+---@private
+function Clipboard:get_nodes_from_reg()
+  local content = vim.fn.getreg(self.reg)
+
+  if #content == 0 then
+    return {}
+  end
+
+  local nodes = {}
+  local absolute_paths = vim.split(content:sub(1, #content), "\n")
+
+  for _, absolute_path in ipairs(absolute_paths) do
+    if absolute_path:match("^%s*(.-)%s*s") then
+      local node_args = { absolute_path = absolute_path, name = vim.fn.fnamemodify(absolute_path, ":t"), explorer = self.explorer }
+      if absolute_path:sub(-1) == "/" then
+        node_args.name = vim.fn.fnamemodify(absolute_path:sub(1, -2), ":t")
+        table.insert(nodes, DirectoryNode(node_args))
+      else
+        table.insert(nodes, FileNode(node_args))
+      end
+    end
+  end
+  return nodes
+end
+
+---@param nodes Node[]
+---@private
+function Clipboard:destroy_nodes(nodes)
+  for _, n in ipairs(nodes) do
+    n:destroy()
+  end
+end
+
+---Paste cut or copy with batch conflict resolution.
+---@private
+---@param node Node
+---@param action ClipboardAction
+---@param action_fn ClipboardActionFn
+function Clipboard:do_paste(node, action, action_fn)
+  if not node or node.name == ".." then
+    node = self.explorer
+  else
+    local dir = node:as(DirectoryNode)
+    if dir then
+      node = dir:last_group_node()
+    end
+  end
+  local is_local = #self.data[action] > 0
+  local clip = is_local and self.data[action] or self:get_nodes_from_reg()
+
+  if #clip == 0 then
+    return
+  end
+
+  local destination = node.absolute_path
+  local stats, err, err_name = vim.uv.fs_stat(destination)
+  if not stats and err_name ~= "ENOENT" then
+    log.line("copy_paste", "do_paste fs_stat '%s' failed '%s'", destination, err)
+    notify.error("Could not " .. action .. " " .. notify.render_path(destination) .. " - " .. (err or "???"))
+    if is_local == false then
+      self:destroy_nodes(clip)
+    end
+    return
+  end
+  local is_dir = stats and stats.type == "directory"
+  if not is_dir then
+    destination = vim.fn.fnamemodify(destination, ":p:h")
+  end
+
+  -- Partition into conflict / no-conflict
+  local no_conflict = {}
+  local conflict = {}
+  for _, _node in ipairs(clip) do
+    local dest = utils.path_join({ destination, _node.name })
+    local dest_stats = vim.uv.fs_stat(dest)
+    if dest_stats then
+      table.insert(conflict, { node = _node, dest = dest })
+    else
+      table.insert(no_conflict, { node = _node, dest = dest })
+    end
+  end
+
+  -- Paste non-conflicting items immediately
+  for _, item in ipairs(no_conflict) do
+    do_paste_one(item.node.absolute_path, item.dest, action, action_fn)
+  end
+
+  -- Resolve conflicts in batch
+  if #conflict > 0 then
+    self:resolve_conflicts(conflict, destination, action, action_fn)
+  else
+    self:finish_paste(action)
+  end
+
+  if is_local == false then
+    self:destroy_nodes(clip)
+  end
+end
+
+---@param source string
+---@param destination string
+---@return boolean
+---@return string?
+local function do_cut(source, destination)
+  log.line("copy_paste", "do_cut '%s' -> '%s'", source, destination)
+
+  if source == destination then
+    log.line("copy_paste", "do_cut source and destination are the same, exiting early")
+    return true
+  end
+
+  events._dispatch_will_rename_node(source, destination)
+  local success, errmsg = vim.uv.fs_rename(source, destination)
+  if not success then
+    log.line("copy_paste", "do_cut fs_rename failed '%s'", errmsg)
+    return false, errmsg
+  end
+  utils.rename_loaded_buffers(source, destination)
+  events._dispatch_node_renamed(source, destination)
+  return true
+end
+
+---Paste cut (if present) or copy (if present)
+---@param node Node
+---@param opts? { cut?: boolean }
+function Clipboard:paste(node, opts)
+  opts = opts and opts or {}
+  if self.data.cut[1] ~= nil or opts.cut == true then
+    self:do_paste(node, "cut", do_cut)
+  else
+    self:do_paste(node, "copy", do_copy)
+  end
+end
+
+function Clipboard:print_clipboard()
+  local content = {}
+  if #self.data.cut > 0 then
+    table.insert(content, "Cut")
+    for _, node in pairs(self.data.cut) do
+      table.insert(content, " * " .. (notify.render_path(node.absolute_path)))
+    end
+  end
+  if #self.data.copy > 0 then
+    table.insert(content, "Copy")
+    for _, node in pairs(self.data.copy) do
+      table.insert(content, " * " .. (notify.render_path(node.absolute_path)))
+    end
+  end
+
+  notify.info(table.concat(content, "\n") .. "\n")
+end
+
+---@param content string
+---@param message? string
+---@param opts? { notify?: boolean }
+function Clipboard:copy_to_reg(content, message, opts)
+  opts = opts and opts or {}
+  vim.fn.setreg(self.reg, type(content) == "table" and content or { content }, "v")
+
+  if opts.notify ~= false then
+    notify.info(message or string.format("Copied %s to %s clipboard!", content, self.clipboard_name))
+  end
+end
+
+---@param node Node
+function Clipboard:copy_filename(node)
+  if node.name == ".." then
+    -- root
+    self:copy_to_reg(vim.fn.fnamemodify(self.explorer.absolute_path, ":t"))
+  else
+    -- node
+    self:copy_to_reg(node.name)
+  end
+end
+
+---@private
+---@param node Node
+---@return string
+function Clipboard:get_absolute_path(node)
+  if node.name == ".." then
+    node = self.explorer
+  end
+
+  local absolute_path = node.absolute_path
+  return node.nodes ~= nil and utils.path_add_trailing(absolute_path) or absolute_path
+end
+
+---@param node Node
+---@return string|nil
+function Clipboard:copy_path(node)
+  if node.name == ".." then
+    -- root
+    self:copy_to_reg(utils.path_add_trailing(""))
+  else
+    -- node
+    local absolute_path = node.absolute_path
+    local cwd = core.get_cwd()
+    if cwd == nil then
+      return
+    end
+
+    local relative_path = utils.path_relative(absolute_path, cwd)
+    if node:is(DirectoryNode) then
+      self:copy_to_reg(utils.path_add_trailing(relative_path))
+    else
+      self:copy_to_reg(relative_path)
+    end
+  end
+end
+
+---@param node_or_nodes Node|Node[]
+---@param opts? { notify?: boolean }
+function Clipboard:copy_absolute_path(node_or_nodes, opts)
+  opts = opts and opts or {}
+  local content
+
+  local is_single = self:is_nodes_array(node_or_nodes) == false
+  if is_single then
+    local node = #node_or_nodes == 1 and node_or_nodes[0] or node_or_nodes
+    content = self:get_absolute_path(node)
+  else
+    node_or_nodes = utils.filter_descendant_nodes(node_or_nodes)
+    content = {}
+    for _, node in ipairs(node_or_nodes) do
+      table.insert(content, self:get_absolute_path(node))
+    end
+  end
+
+
+  if content ~= nil then
+    local message = nil
+
+    if not is_single then
+      message = string.format("%s %s copied to register", #content, #content > 1 and "absolute paths" or "absolute path")
+    end
+    self:copy_to_reg(content, message, opts)
+  end
+end
+
+---@param node Node
+function Clipboard:copy_basename(node)
+  if node.name == ".." then
+    -- root
+    self:copy_to_reg(vim.fn.fnamemodify(node.explorer.absolute_path, ":t:r"))
+  else
+    -- node
+    self:copy_to_reg(vim.fn.fnamemodify(node.name, ":r"))
+  end
+end
+
+---Node is cut. Will not be copied.
+---@param node Node
+---@return boolean
+function Clipboard:is_cut(node)
+  return vim.tbl_contains(self.data.cut, node)
+end
+
+---Node is copied. Will not be cut.
+---@param node Node
+---@return boolean
+function Clipboard:is_copied(node)
+  return vim.tbl_contains(self.data.copy, node)
+end
+
+return Clipboard

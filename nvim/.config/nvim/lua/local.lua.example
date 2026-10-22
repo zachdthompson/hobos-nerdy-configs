@@ -1,0 +1,13 @@
+-- Copy to lua/local.lua (gitignored) for machine-specific tweaks.
+-- Loaded before everything else in init.lua.
+
+-- No Nerd Font on this box? Use ASCII icons:
+-- vim.g.have_nerd_font = false
+
+-- Change which filetypes format on save:
+-- vim.g.format_on_save = { go = true, terraform = true }
+
+-- Add keymaps/options after startup:
+-- vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = function()
+--   vim.keymap.set("n", "<leader>x", "<cmd>echo 'hi'<CR>")
+-- end })

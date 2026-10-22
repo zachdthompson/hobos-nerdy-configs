@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# tssh — cssh-style multi-ssh in tmux. Thin wrapper around xpanes.
+#
+#   tssh host1 host2 host3          one pane per host, broadcast ON
+#   tssh node{1..5}.lab              brace expansion works (bash/zsh; fish too)
+#   tssh @cp                         hosts from ~/.config/tssh/groups/cp
+#   tssh @cp @workers extra-host     mix groups and hosts
+#   tssh -J jumpbox @cp              ProxyJump through a bastion — avoids
+#                                    running xpanes ON the jumpbox (nested tmux)
+#   tssh -l admin -d host1 host2     remote user, start with broadcast OFF
+#
+# Inside tmux: opens a new window in the current session.
+# Outside tmux: creates a session and attaches.
+# Toggle broadcast with prefix+e. Group files: one host per line, # comments.
+
+set -euo pipefail
+
+GROUP_DIR="${TSSH_GROUP_DIR:-$HOME/.config/tssh/groups}"
+usage() { sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+
+jump="" user="" desync=()
+while getopts ":J:l:dh" opt; do
+    case "$opt" in
+        J) jump="$OPTARG" ;;
+        l) user="$OPTARG" ;;
+        d) desync=(-d) ;;
+        h) usage 0 ;;
+        :) echo "tssh: -$OPTARG needs a value" >&2; exit 2 ;;
+        *) echo "tssh: unknown option -$OPTARG" >&2; usage 2 ;;
+    esac
+done
+shift $((OPTIND - 1))
+[ $# -gt 0 ] || usage 2
+
+hosts=()
+for arg in "$@"; do
+    if [[ "$arg" == @* ]]; then
+        f="$GROUP_DIR/${arg#@}"
+        [ -r "$f" ] || { echo "tssh: no group file $f" >&2; exit 1; }
+        while IFS= read -r line; do
+            line="${line%%#*}"; line="${line//[[:space:]]/}"
+            [ -n "$line" ] && hosts+=("$line")
+        done < "$f"
+    else
+        hosts+=("$arg")
+    fi
+done
+[ ${#hosts[@]} -gt 0 ] || { echo "tssh: no hosts" >&2; exit 1; }
+
+XPANES="$(command -v xpanes || true)"
+[ -n "$XPANES" ] || { echo "tssh: xpanes not found on PATH" >&2; exit 1; }
+command -v tmux >/dev/null || { echo "tssh: tmux not installed" >&2; exit 1; }
+
+ssh_cmd="ssh"
+[ -n "$jump" ] && ssh_cmd+=" -J $(printf '%q' "$jump")"
+[ -n "$user" ] && ssh_cmd+=" -l $(printf '%q' "$user")"
+
+# -t: hostname as each pane's border title. xpanes enables sync by default.
+exec "$XPANES" -t ${desync[@]+"${desync[@]}"} -c "$ssh_cmd {}" "${hosts[@]}"
