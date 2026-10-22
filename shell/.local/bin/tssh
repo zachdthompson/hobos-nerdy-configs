@@ -33,16 +33,20 @@ shift $((OPTIND - 1))
 [ $# -gt 0 ] || usage 2
 
 # ─── Validation ──────────────────────────────────────────
-# xpanes types the command into each pane's shell (bash, zsh or fish), so
-# every value must be inert in all of them. Allow-list only — no quoting
-# tricks. Anything else is rejected before a pane is opened.
-RE_USER='^[A-Za-z0-9_][A-Za-z0-9._-]*$'
-RE_HOST='^[A-Za-z0-9_][A-Za-z0-9._:%-]*$'          # name, IPv4, IPv6 (incl. %zone)
-RE_DEST="^(${RE_USER:1:-1}@)?${RE_HOST:1:-1}\$"    # [user@]host
-RE_URI="^ssh://(${RE_USER:1:-1}@)?${RE_HOST:1:-1}(:[0-9]{1,5})?\$"
+# xpanes types the command into each pane's shell (bash, zsh or fish). Values
+# are allow-listed (no quotes, no metacharacters) AND single-quoted when
+# inserted, since IPv6 brackets are glob characters in bash/zsh.
+USER_RE='[A-Za-z0-9_][A-Za-z0-9._-]*'
+NAME_RE='[A-Za-z0-9_][A-Za-z0-9._-]*'                   # hostname / IPv4 / alias
+V6_RE='[0-9A-Fa-f]*:[0-9A-Fa-f:.]*(%[A-Za-z0-9._-]+)?'  # ::1, fe80::1%eth0, ::ffff:1.2.3.4
+PORT_RE='[0-9]{1,5}'
+RE_USER="^${USER_RE}\$"
+RE_DEST="^(${USER_RE}@)?(${NAME_RE}|${V6_RE})\$"                                  # ssh [user@]host
+RE_URI="^ssh://(${USER_RE}@)?(${NAME_RE}|\[${V6_RE}\])(:${PORT_RE})?\$"           # ssh://[u@]h[:p]
+RE_HOP="^(${USER_RE}@)?((${NAME_RE}|\[${V6_RE}\])(:${PORT_RE})?|${V6_RE})\$"     # -J hop
 RE_GROUP='^[A-Za-z0-9_][A-Za-z0-9._-]*$'
 
-bad() { echo "tssh: refusing $1: '$2' (allowed: letters, digits, . _ - : % and user@)" >&2; exit 2; }
+bad() { echo "tssh: refusing $1: '$2' (expected [user@]host, IPv6, or ssh://[user@]host[:port])" >&2; exit 2; }
 
 [ -z "$user" ] || [[ "$user" =~ $RE_USER ]] || bad "user" "$user"
 if [ -n "$jump" ]; then
@@ -50,7 +54,7 @@ if [ -n "$jump" ]; then
     [ ${#hops[@]} -gt 0 ] || bad "jump host" "$jump"
     for h in "${hops[@]}"; do
         # ProxyJump hops may carry :port, or be ssh:// URIs
-        [[ "$h" =~ $RE_URI || "$h" =~ ^${RE_DEST:1:-1}(:[0-9]{1,5})?$ ]] || bad "jump host" "$h"
+        [[ "$h" =~ $RE_HOP || "$h" =~ $RE_URI ]] || bad "jump host" "$h"
     done
 fi
 
@@ -79,12 +83,12 @@ XPANES="$(command -v xpanes || true)"
 [ -n "$XPANES" ] || { echo "tssh: xpanes not found on PATH" >&2; exit 1; }
 command -v tmux >/dev/null || { echo "tssh: tmux not installed" >&2; exit 1; }
 
-# All values validated above, so plain concatenation is safe. '--' stops ssh
-# from ever reading a destination as an option.
+# Validated values contain no single quotes, so '...' is a plain literal in
+# bash, zsh and fish alike. '--' stops ssh reading a destination as an option.
 ssh_cmd="ssh"
-[ -n "$jump" ] && ssh_cmd+=" -J $jump"
-[ -n "$user" ] && ssh_cmd+=" -l $user"
+[ -n "$jump" ] && ssh_cmd+=" -J '$jump'"
+[ -n "$user" ] && ssh_cmd+=" -l '$user'"
 
 # -t: hostname as each pane's border title. xpanes enables sync by default.
 # Never use xpanes --ssh: it disables StrictHostKeyChecking.
-exec "$XPANES" -t ${desync[@]+"${desync[@]}"} -c "$ssh_cmd -- {}" "${hosts[@]}"
+exec "$XPANES" -t ${desync[@]+"${desync[@]}"} -c "$ssh_cmd -- '{}'" "${hosts[@]}"

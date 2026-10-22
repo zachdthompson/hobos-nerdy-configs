@@ -177,7 +177,18 @@ install_packages() {
 declare -A FOLD=( [nvim]=".config/nvim" )
 
 backup() { # backup <path-relative-to-HOME>
-    local rel="$1"
+    local rel="$1" a="" part
+    local -a parts
+    # Re-check right before moving: no parent of $rel may be a symlink, or
+    # we'd be moving something that lives elsewhere (repo, external dir).
+    if ! $DRY_RUN; then
+        IFS=/ read -ra parts <<< "$(dirname "$rel")"
+        for part in ${parts[@]+"${parts[@]}"}; do
+            [ "$part" = . ] && break
+            a="${a:+$a/}$part"
+            [ -L "$HOME/$a" ] && die "refusing to move ~/$rel: ~/$a is a symlink"
+        done
+    fi
     info "  backing up ~/$rel → ${BACKUP_DIR/#$HOME/~}/$rel"
     run mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
     run mv "$HOME/$rel" "$BACKUP_DIR/$rel"
@@ -203,58 +214,101 @@ pkg_dirs() { # every parent dir (relative to $HOME) stow will need, shallowest f
         else
             (cd "$DOTFILES_DIR/$pkg" && find . -mindepth 1 -type d) | sed 's|^\./||'
         fi
-    done | awk -F/ '{print NF "\t" $0}' | sort -n -u | cut -f2-
+    done | sort -u | awk -F/ '{print NF "\t" $0}' | sort -s -n -k1,1 | cut -f2-
 }
 
-REPO_LINKS=() EXT_LINKS=()
+REPO_LINKS=() EXT_LINKS=() NESTED_LINKS=()
 scan_parent_links() {
-    REPO_LINKS=() EXT_LINKS=()
-    local d covered l
+    REPO_LINKS=() EXT_LINKS=() NESTED_LINKS=()
+    local d l parent_repo
     while IFS= read -r d; do
         [ -n "$d" ] || continue
-        covered=false # a deeper path under an already-flagged link is moot
-        for l in ${REPO_LINKS[@]+"${REPO_LINKS[@]}"} ${EXT_LINKS[@]+"${EXT_LINKS[@]}"}; do
-            [[ "$d" == "$l"/* ]] && { covered=true; break; }
+        parent_repo=false
+        for l in ${EXT_LINKS[@]+"${EXT_LINKS[@]}"} ${NESTED_LINKS[@]+"${NESTED_LINKS[@]}"}; do
+            [[ "$d" == "$l"/* ]] && continue 2      # already aborting on its parent
         done
-        $covered && continue
+        for l in ${REPO_LINKS[@]+"${REPO_LINKS[@]}"}; do
+            [[ "$d" == "$l"/* ]] && { parent_repo=true; break; }
+        done
+        # Under a repo-owned link, this test sees the entry INSIDE the repo —
+        # exactly what unfolding would move into $HOME. Any link there is nested.
         if [ -L "$HOME/$d" ]; then
-            if owned_by_repo "$HOME/$d"; then REPO_LINKS+=("$d"); else EXT_LINKS+=("$d"); fi
+            if $parent_repo; then NESTED_LINKS+=("$d")
+            elif owned_by_repo "$HOME/$d"; then REPO_LINKS+=("$d")
+            else EXT_LINKS+=("$d")
+            fi
         fi
     done < <(pkg_dirs "$@")
 }
 
 unfold_repo_link() { # unfold_repo_link <dir-relative-to-HOME>
-    local rel="$1" src p sub moved=0
+    local rel="$1" src srel stage p sub mode
+    local -a items=() moved=()
     src="$(readlink -f "$HOME/$rel")"
-    info "  unfolding ~/$rel (was a link into the repo: ${src#"$DOTFILES_DIR"/})"
-    run rm "$HOME/$rel"              # removes the link only, never its target
-    run mkdir -p "$HOME/$rel"
-    # Untracked + ignored files under src = user data that leaked into the repo.
-    while IFS= read -r p; do
-        [ -n "$p" ] || continue
-        sub="${p#"${src#"$DOTFILES_DIR"/}"/}"
-        run mkdir -p "$HOME/$rel/$(dirname "$sub")"
-        run mv "$DOTFILES_DIR/$p" "$HOME/$rel/$sub"
-        moved=$((moved + 1))
-    done < <(git -C "$DOTFILES_DIR" ls-files --others -- "${src#"$DOTFILES_DIR"/}")
-    [ $moved -gt 0 ] && info "  moved $moved untracked file(s) from the repo back into ~/$rel"
+    srel="${src#"$DOTFILES_DIR"/}"
+
+    # Collect + validate everything BEFORE touching the link. -z: no quoting of
+    # non-ASCII / odd names. Untracked + ignored = user data that leaked in.
+    while IFS= read -r -d '' p; do items+=("$p"); done \
+        < <(git -C "$DOTFILES_DIR" ls-files --others -z -- "$srel")
+    for p in ${items[@]+"${items[@]}"}; do
+        [[ "$p" == "$srel"/* ]] || die "unexpected path from git ls-files: $p — ~/$rel left unchanged"
+        [ -e "$DOTFILES_DIR/$p" ] || [ -L "$DOTFILES_DIR/$p" ] \
+            || die "can't stat $DOTFILES_DIR/$p — ~/$rel left unchanged"
+    done
+
+    info "  unfolding ~/$rel (link into the repo: $srel), ${#items[@]} untracked file(s) to move out"
+    if $DRY_RUN; then
+        for p in ${items[@]+"${items[@]}"}; do echo "   [dry-run] mv $p → ~/$rel/${p#"$srel"/}"; done
+        echo "   [dry-run] replace link ~/$rel with a real directory"
+        return 0
+    fi
+
+    # Stage beside the link, so the link stays intact until everything moved.
+    stage="$(mktemp -d "$(dirname "$HOME/$rel")/.$(basename "$rel").unfold.XXXXXX")"
+    for p in ${items[@]+"${items[@]}"}; do
+        sub="${p#"$srel"/}"
+        if mkdir -p "$stage/$(dirname "$sub")" && mv "$DOTFILES_DIR/$p" "$stage/$sub"; then
+            moved+=("$p")
+        else
+            warn "moving $p failed — rolling back"
+            local q
+            for q in ${moved[@]+"${moved[@]}"}; do
+                mv "$stage/${q#"$srel"/}" "$DOTFILES_DIR/$q" || warn "  could not restore $q (it is in $stage)"
+            done
+            find "$stage" -depth -type d -empty -delete 2>/dev/null
+            die "$HOME/$rel left unchanged"
+        fi
+    done
+    mode="$(stat -c %a "$src" 2>/dev/null || echo 700)"
+    chmod "$mode" "$stage"
+    rm "$HOME/$rel" && mv "$stage" "$HOME/$rel" \
+        || die "could not swap ~/$rel for a real dir; your files are safe in $stage"
     return 0
 }
 
 resolve_parent_links() {
+    local l
     scan_parent_links "$@"
-    if [ ${#EXT_LINKS[@]} -gt 0 ]; then
-        warn "These directories are symlinks to somewhere outside this repo:"
-        local l
-        for l in "${EXT_LINKS[@]}"; do warn "  ~/$l -> $(readlink "$HOME/$l")"; done
-        warn "Stow can only link into real directories, and moving the link would"
+    if [ ${#EXT_LINKS[@]} -gt 0 ] || [ ${#NESTED_LINKS[@]} -gt 0 ]; then
+        warn "Can't safely migrate these symlinked directories:"
+        for l in ${EXT_LINKS[@]+"${EXT_LINKS[@]}"}; do warn "  ~/$l -> $(readlink "$HOME/$l")"; done
+        for l in ${NESTED_LINKS[@]+"${NESTED_LINKS[@]}"}; do
+            warn "  ~/$l -> $(readlink "$HOME/$l")  (link inside a repo-linked dir)"
+        done
+        warn "Stow can only link into real directories, and moving a link would"
         warn "hide whatever lives behind it. Nothing has been changed."
         die "Make each a real directory (e.g. rm ~/X && cp -a <target> ~/X), then re-run."
     fi
-    if [ ${#REPO_LINKS[@]} -gt 0 ]; then
-        git -C "$DOTFILES_DIR" rev-parse --git-dir >/dev/null 2>&1 \
-            || die "$HOME/${REPO_LINKS[0]} links into the repo, but this copy has no .git to tell your files from tracked ones. Unfold it by hand."
-        local l; for l in "${REPO_LINKS[@]}"; do unfold_repo_link "$l"; done
+    [ ${#REPO_LINKS[@]} -gt 0 ] || return 0
+    git -C "$DOTFILES_DIR" rev-parse --git-dir >/dev/null 2>&1 \
+        || die "$HOME/${REPO_LINKS[0]} links into the repo, but this copy has no .git to tell your files from tracked ones. Unfold it by hand."
+    for l in "${REPO_LINKS[@]}"; do unfold_repo_link "$l"; done
+    $DRY_RUN && return 0
+    # Belt and braces: after unfolding, every needed dir must be real.
+    scan_parent_links "$@"
+    if [ $(( ${#REPO_LINKS[@]} + ${#EXT_LINKS[@]} + ${#NESTED_LINKS[@]} )) -gt 0 ]; then
+        die "symlinked dirs remain after unfolding: ${REPO_LINKS[*]} ${EXT_LINKS[*]} ${NESTED_LINKS[*]}"
     fi
 }
 
@@ -297,7 +351,7 @@ PKGS=(shell)
 
 # Read-only check first: an unsafe symlinked dir aborts before any install.
 scan_parent_links "${PKGS[@]}"
-[ ${#EXT_LINKS[@]} -gt 0 ] && resolve_parent_links "${PKGS[@]}"
+[ $(( ${#EXT_LINKS[@]} + ${#NESTED_LINKS[@]} )) -gt 0 ] && resolve_parent_links "${PKGS[@]}"
 
 $STOW_ONLY || install_packages
 command -v stow >/dev/null 2>&1 || $DRY_RUN || die "GNU stow not installed (try without --stow-only)"
