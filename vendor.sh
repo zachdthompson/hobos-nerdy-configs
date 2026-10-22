@@ -39,6 +39,9 @@ for item in "${ITEMS[@]}"; do
     else
         rm -rf "${PACK:?}/$name"; mkdir -p "$PACK/$name"
         for p in $keep; do cp -r "$tmp/$name/$p" "$PACK/$name/"; done
+        # Upstream .gitignore files (e.g. nvim-tree ignores doc/tags) would keep
+        # vendored files out of this repo — drop them.
+        find "$PACK/$name" -name .gitignore -delete
         # Opt packages need prebuilt help tags so :help works offline.
         if [ -d "$PACK/$name/doc" ] && command -v nvim >/dev/null; then
             nvim --headless --clean -c "helptags $PACK/$name/doc" -c q 2>/dev/null || true
