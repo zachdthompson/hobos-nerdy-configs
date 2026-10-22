@@ -1,0 +1,24 @@
+# Identity lives in ~/.gitconfig.local (not committed) so the same file
+# works anywhere. setup.sh offers to create it.
+[include]
+    path = ~/.gitconfig.local
+
+[init]
+    defaultBranch = main
+[pull]
+    ff = only
+[push]
+    autoSetupRemote = true
+[fetch]
+    prune = true
+[diff]
+    algorithm = histogram
+[merge]
+    conflictstyle = zdiff3
+[rerere]
+    enabled = true
+[alias]
+    st = status -sb
+    lg = log --graph --oneline --decorate --all
+    last = log -1 HEAD --stat
+    unstage = reset HEAD --
