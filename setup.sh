@@ -187,26 +187,91 @@ owned_by_repo() { # symlink resolving into this repo?
     [ -L "$1" ] && [[ "$(readlink -f "$1")" == "$DOTFILES_DIR"/* ]]
 }
 
-preflight() { # move aside anything stow would refuse to replace
+# ─── Symlinked parent directories ────────────────────────
+# Stow can only place links inside REAL directories. If ~/.ssh (or ~/.config,
+# ...) is itself a symlink, we must never move or inspect files through it.
+#   → link into this repo (old folded stow): unfold it. The link is replaced
+#     by a real dir; files git doesn't track (keys, local state) move out of
+#     the repo into it; tracked files stay and get re-linked by stow.
+#   → link anywhere else: stop before changing anything.
+pkg_dirs() { # every parent dir (relative to $HOME) stow will need, shallowest first
+    local pkg rel d
+    for pkg in "$@"; do
+        if [ -n "${FOLD[$pkg]:-}" ]; then
+            d="$(dirname "${FOLD[$pkg]}")"
+            while [ "$d" != . ]; do echo "$d"; d="$(dirname "$d")"; done
+        else
+            (cd "$DOTFILES_DIR/$pkg" && find . -mindepth 1 -type d) | sed 's|^\./||'
+        fi
+    done | awk -F/ '{print NF "\t" $0}' | sort -n -u | cut -f2-
+}
+
+REPO_LINKS=() EXT_LINKS=()
+scan_parent_links() {
+    REPO_LINKS=() EXT_LINKS=()
+    local d covered l
+    while IFS= read -r d; do
+        [ -n "$d" ] || continue
+        covered=false # a deeper path under an already-flagged link is moot
+        for l in ${REPO_LINKS[@]+"${REPO_LINKS[@]}"} ${EXT_LINKS[@]+"${EXT_LINKS[@]}"}; do
+            [[ "$d" == "$l"/* ]] && { covered=true; break; }
+        done
+        $covered && continue
+        if [ -L "$HOME/$d" ]; then
+            if owned_by_repo "$HOME/$d"; then REPO_LINKS+=("$d"); else EXT_LINKS+=("$d"); fi
+        fi
+    done < <(pkg_dirs "$@")
+}
+
+unfold_repo_link() { # unfold_repo_link <dir-relative-to-HOME>
+    local rel="$1" src p sub moved=0
+    src="$(readlink -f "$HOME/$rel")"
+    info "  unfolding ~/$rel (was a link into the repo: ${src#"$DOTFILES_DIR"/})"
+    run rm "$HOME/$rel"              # removes the link only, never its target
+    run mkdir -p "$HOME/$rel"
+    # Untracked + ignored files under src = user data that leaked into the repo.
+    while IFS= read -r p; do
+        [ -n "$p" ] || continue
+        sub="${p#"${src#"$DOTFILES_DIR"/}"/}"
+        run mkdir -p "$HOME/$rel/$(dirname "$sub")"
+        run mv "$DOTFILES_DIR/$p" "$HOME/$rel/$sub"
+        moved=$((moved + 1))
+    done < <(git -C "$DOTFILES_DIR" ls-files --others -- "${src#"$DOTFILES_DIR"/}")
+    [ $moved -gt 0 ] && info "  moved $moved untracked file(s) from the repo back into ~/$rel"
+    return 0
+}
+
+resolve_parent_links() {
+    scan_parent_links "$@"
+    if [ ${#EXT_LINKS[@]} -gt 0 ]; then
+        warn "These directories are symlinks to somewhere outside this repo:"
+        local l
+        for l in "${EXT_LINKS[@]}"; do warn "  ~/$l -> $(readlink "$HOME/$l")"; done
+        warn "Stow can only link into real directories, and moving the link would"
+        warn "hide whatever lives behind it. Nothing has been changed."
+        die "Make each a real directory (e.g. rm ~/X && cp -a <target> ~/X), then re-run."
+    fi
+    if [ ${#REPO_LINKS[@]} -gt 0 ]; then
+        git -C "$DOTFILES_DIR" rev-parse --git-dir >/dev/null 2>&1 \
+            || die "$HOME/${REPO_LINKS[0]} links into the repo, but this copy has no .git to tell your files from tracked ones. Unfold it by hand."
+        local l; for l in "${REPO_LINKS[@]}"; do unfold_repo_link "$l"; done
+    fi
+}
+
+preflight() { # move aside any FILE stow would refuse to replace
     local pkg="$1" rel t
     if [ -n "${FOLD[$pkg]:-}" ]; then
         rel="${FOLD[$pkg]}"; t="$HOME/$rel"
         if { [ -e "$t" ] || [ -L "$t" ]; } && ! owned_by_repo "$t"; then backup "$rel"; fi
         return
     fi
+    local l
     while IFS= read -r rel; do
         rel="${rel#./}"; t="$HOME/$rel"
-        # A parent dir that's a symlink elsewhere (old folded stow, old clone):
-        # move the link itself aside — never touch files through it.
-        local anc="" part="" IFS_OLD="$IFS"
-        IFS=/; for part in $(dirname "$rel"); do
-            [ "$part" = . ] && break
-            anc="${anc:+$anc/}$part"
-            if [ -L "$HOME/$anc" ]; then
-                owned_by_repo "$HOME/$anc" || backup "$anc"
-                break
-            fi
-        done; IFS="$IFS_OLD"
+        # dry-run: a dir we'd unfold is still a link, so its contents aren't conflicts
+        if $DRY_RUN; then
+            for l in ${REPO_LINKS[@]+"${REPO_LINKS[@]}"}; do [[ "$rel" == "$l"/* ]] && continue 2; done
+        fi
         if [ -L "$t" ]; then owned_by_repo "$t" || backup "$rel"
         elif [ -e "$t" ]; then backup "$rel"
         fi
@@ -226,21 +291,32 @@ stow_pkg() {
 }
 
 # ─── Main ────────────────────────────────────────────────
-$STOW_ONLY || install_packages
-command -v stow >/dev/null 2>&1 || $DRY_RUN || die "GNU stow not installed (try without --stow-only)"
-
-run mkdir -p "$HOME/.ssh" "$HOME/.ssh/config.d" "$HOME/.config/tssh/groups"
-run chmod 700 "$HOME/.ssh"
-
 PKGS=(shell)
 [ "$TIER" = desktop ] && PKGS+=(desktop)
 [ "$NVIM" = yes ] && PKGS+=(nvim)
+
+# Read-only check first: an unsafe symlinked dir aborts before any install.
+scan_parent_links "${PKGS[@]}"
+[ ${#EXT_LINKS[@]} -gt 0 ] && resolve_parent_links "${PKGS[@]}"
+
+$STOW_ONLY || install_packages
+command -v stow >/dev/null 2>&1 || $DRY_RUN || die "GNU stow not installed (try without --stow-only)"
+
 info "Stowing: ${PKGS[*]}"
+resolve_parent_links "${PKGS[@]}"
 for p in "${PKGS[@]}"; do stow_pkg "$p"; done
 
+# Only now: ~/.ssh is guaranteed to be a real directory, not a link.
+run mkdir -p "$HOME/.ssh/config.d" "$HOME/.config/tssh/groups"
+run chmod 700 "$HOME/.ssh"
+
+# Version check without starting nvim (starting it would load whatever
+# config/plugins are already on this box — not OK during a dry run or ever).
 if [ "$NVIM" = yes ] && command -v nvim >/dev/null 2>&1; then
-    if ! nvim --headless -c 'if has("nvim-0.10") | q | else | cq | endif' 2>/dev/null; then
-        warn "nvim $(nvim --version | head -1 | cut -d' ' -f2) is < 0.10: plugins/LSP disabled. Grab a newer build (see docs/packages.md)."
+    nv="$(nvim --version 2>/dev/null | sed -n '1s/^NVIM v\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1 \2/p')"
+    read -r nv_major nv_minor <<< "$nv"
+    if [ -n "${nv_major:-}" ] && [ "$nv_major" -eq 0 ] && [ "$nv_minor" -lt 10 ]; then
+        warn "nvim 0.$nv_minor is < 0.10: plugins/LSP disabled. Grab a newer build (see docs/packages.md)."
     fi
 fi
 
@@ -256,12 +332,15 @@ fi
 # ─── Font (desktop) ──────────────────────────────────────
 if [ "$TIER" = desktop ] && ! $STOW_ONLY && { $WANT_FONT || ask "Install Meslo Nerd Font?"; }; then
     fdir="$HOME/.local/share/fonts/MesloNerd"
+    ftmp="$(mktemp -d)"                       # private, not a guessable /tmp name
+    trap 'rm -rf "$ftmp"' EXIT
     run mkdir -p "$fdir"
-    if run curl -fsSLo /tmp/Meslo.zip \
+    if run curl -fsSLo "$ftmp/Meslo.zip" \
         "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"; then
-        run unzip -oq /tmp/Meslo.zip -d "$fdir" && run fc-cache -f "$fdir" && ok "Meslo Nerd Font installed" || true
+        { run unzip -oq "$ftmp/Meslo.zip" -d "$fdir" && run fc-cache -f "$fdir" && ok "Meslo Nerd Font installed"; } \
+            || warn "Font extract failed"
     else
-        warn "Font download failed (offline?) — icons fall back to ASCII with NVIM_ASCII=1"
+        warn "Font download failed (offline?) — use NVIM_ASCII=1 for ASCII icons"
     fi
 fi
 

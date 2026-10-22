@@ -77,8 +77,8 @@ _zsh_source_first() {
   return 1
 }
 
-# --- fast-syntax-highlighting (snappy token colors) ---
-# Try common install locations (Arch, Debian/Ubuntu, brew, manual clone)
+# --- Syntax highlighting: fast-syntax-highlighting if present, else the
+# distro-packaged zsh-syntax-highlighting (what setup.sh --extras installs).
 _zsh_source_first \
   /usr/share/zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh \
   /usr/share/zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh \
@@ -86,6 +86,7 @@ _zsh_source_first \
   /opt/homebrew/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh \
   /usr/local/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh \
   "$HOME/.zsh/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+_have_fsh=$?   # 0 = loaded; else fall back to zsh-syntax-highlighting at the end
 
 # Optional: tweak a couple styles (comment these if you don’t care)
 typeset -gA FAST_HIGHLIGHT_STYLES
@@ -113,6 +114,16 @@ _zsh_source_first \
 bindkey '^[f' forward-word
 zle -N autosuggest-toggle
 bindkey '^[^S' autosuggest-toggle
+
+# zsh-syntax-highlighting must be sourced after every other widget is defined.
+if (( _have_fsh != 0 )); then
+  _zsh_source_first \
+    /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+    /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+    /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+    /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+unset _have_fsh
 
 # Machine-local overrides (never committed)
 [[ -r ~/.zshrc.local ]] && source ~/.zshrc.local

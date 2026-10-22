@@ -5,6 +5,11 @@ No plugin managers, no TPM, no mason, no `curl | sh` in a shell rc. Third-party
 code is vendored into the repo as plain files, so a copy of this directory works
 the same on an air-gapped box as on a laptop.
 
+That rule covers the configs, not the installer: `setup.sh` calls your package
+manager, and `--extras`/`--font` download. On an offline host use
+`./setup.sh --stow-only` with tools already installed. LSP servers are separate
+binaries and follow their own network behavior.
+
 ## Layout
 
 ```
@@ -32,6 +37,11 @@ the repo can live anywhere.
 Detects dnf, rpm-ostree (Bazzite/Silverblue — checked before dnf), pacman
 (Arch/CachyOS) and apt. Anything that would be overwritten is moved to
 `~/.dotfiles-backup/<timestamp>/` first. Re-running is safe.
+
+Symlinked directories (e.g. `~/.ssh` from an old folded stow): if the link
+points into this repo, setup replaces it with a real directory and moves any
+untracked files (keys, local state) out of the repo into it. If it points
+anywhere else, setup stops before changing anything and tells you which link.
 
 Stow runs with `--no-folding` so `~/.ssh`, `~/.config/fish` etc. stay real
 directories — keys and runtime files never land in the repo. The one exception
